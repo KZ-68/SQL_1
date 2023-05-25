@@ -54,10 +54,12 @@ GROUP BY
 
 CREATE OR REPLACE VIEW moyennesMatiereEtudiant AS
 SELECT 
-    libellemat, 
+    libellemat,
     AVG(moyennesMatiere) AS moyennesParMatiere
 FROM 
-    moyennesEtudiant
+    moyennesEtudiant 
+    -- On récupère une vue déjà créé pour accéder a ses colonnes et les manipuler, 
+    -- par exemple ici on souhaite afficher les colonne du libellé des matières et la colonne des moyennes par matière
 GROUP BY 
     libellemat;
 
@@ -81,6 +83,7 @@ CREATE OR REPLACE VIEW moyennePromotion AS
 SELECT AVG(moyennesGeneraleEtudiants)
 FROM moyennesGenerale;
 
+-- La représentation des "couches" de vues par lesquelles on accès par le biais de moyennesGenerale
 SELECT AVG(moyennesGeneraleEtudiants)
 FROM (
         SELECT 
@@ -109,12 +112,12 @@ FROM (
                         e.prenom, 
                         m.libellemat, 
                         m.coeffmat;     
-            ) AS vue_c
+            ) AS vue_c -- moyennesEtudiant
             GROUP BY 
                 numero_etudiant, 
                 nom, 
                 prenom
-    ) AS vue_e
+    ) AS vue_e -- moyennesGenerale
 ;
 
 -- g) Quels sont les étudiants qui ont une moyenne générale supérieure ou égale à la moyenne générale de la promotion ? (cf. question e)
