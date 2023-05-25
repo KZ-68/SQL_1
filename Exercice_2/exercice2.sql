@@ -7,7 +7,7 @@
 -- a) Quel est le nombre total d'étudiants ?
 
 SELECT COUNT(r.numero_etudiant)
-FROM evaluer r
+FROM etudiant r
 
 -- b) Quelles sont, parmi l'ensemble des notes, la note la plus haute et la note la plus basse ?
 
