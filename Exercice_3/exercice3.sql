@@ -10,7 +10,7 @@ SELECT a.noart, a.libelle, a.stock
 FROM articles a
 WHERE a.stock < 10
 
--- b) Quelles sont, parmi l'ensemble des notes, la note la plus haute et la note la plus basse ?
+-- b) Liste des articles dont le prix d'inventaire est compris entre 100 et 300 ?
 
 SELECT a.noart, a.libelle, a.prixinvent
 FROM articles a
@@ -31,7 +31,7 @@ WHERE f.nomfour LIKE "STE%"
 -- e) Noms  et  adresses  des  fournisseurs  qui  proposent  des  articles  pour  lesquels  le  délai d'approvisionnement est supérieur à 20 jours ?
 
 CREATE VIEW delaiFournisseurs AS
-SELECT 
+SELECT DISTINCT
     f.nofour, 
     f.nomfour, 
     f.adrfour, 
@@ -91,7 +91,6 @@ GROUP BY a.noart, a.libelle
 
 CREATE OR REPLACE VIEW delaiarticlesfournisseurs AS
 SELECT 
-    COUNT(articles) AS nb_art,
     a.libelle,
     f.nofour, 
     f.nomfour, 
@@ -102,7 +101,6 @@ FROM
 	acheter ach
 INNER JOIN fournisseurs f ON f.nofour = ach.nofour_id  
 INNER JOIN articles a ON a.noart = ach.noart_id
-HAVING nb_art > 2
 GROUP BY 
     a.libelle,
     f.nofour, 
