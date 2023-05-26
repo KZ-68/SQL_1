@@ -31,24 +31,26 @@ SELECT
     e.numero_etudiant,
     e.nom, 
     e.prenom, 
+    m.codemat,
     m.libellemat,
     m.coeffmat,
     AVG(ev.note) AS moyennesMatiere -- On donne un nom personnalisée à cette sélection
 -- On spécifie quelle(s) table(s) peut être sélectionnée(s) 
 FROM 
-    etudiant e, 
-    evaluer ev, 
-    matiere m
+    etudiant e
 -- Fait la jointure des tables
-WHERE 
-    e.numero_etudiant = ev.numero_etudiant_id 
-    AND m.codemat = ev.code_mat
+INNER JOIN evaluer ev ON e.numero_etudiant = ev.numero_etudiant_id
+INNER JOIN matiere m ON ev.code_mat = m.codemat
 GROUP BY 
     e.numero_etudiant, 
     e.nom, 
     e.prenom, 
+    m.codemat,
     m.libellemat, 
     m.coeffmat;
+ORDER BY
+	e.numero_etudiant ASC,
+	m.codemat DESC
 
 -- d) Quelles sont les moyennes par matière ? (cf. question c)
 
@@ -70,7 +72,7 @@ SELECT
     numero_etudiant,
     nom, 
     prenom, 
-    SUM(moyennesMatiere * coeffmat) / SUM(coeffmat) AS moyennesGeneraleEtudiants
+    ROUND(SUM(moyennesMatiere * coeffmat) / SUM(coeffmat), 2) AS moyennesGeneraleEtudiants
 FROM moyennesEtudiant
 GROUP BY  
     numero_etudiant, 
@@ -80,7 +82,7 @@ GROUP BY
 -- f) Quelle est la moyenne générale de la promotion ?(cf. question e)
 
 CREATE OR REPLACE VIEW moyennePromotion AS
-SELECT AVG(moyennesGeneraleEtudiants)
+SELECT ROUND(AVG(moyennesGeneraleEtudiants), 2)
 FROM moyennesGenerale;
 
 -- La représentation des "couches" de vues par lesquelles on accès par le biais de moyennesGenerale
@@ -127,11 +129,11 @@ SELECT
     numero_etudiant,
     nom, 
     prenom
+    moyennesGeneraleEtudiants
 FROM moyennesGenerale
-WHERE moyennesGeneraleEtudiants >= (
-    SELECT AVG(moyennesGeneraleEtudiants)
-    FROM moyennesGenerale)
-GROUP BY 
-    numero_etudiant,
-    nom, 
-    prenom
+WHERE 
+    moyennesGeneraleEtudiants >= (
+    SELECT 
+        ROUND(AVG(moyennesGeneraleEtudiants), 2)
+    FROM 
+        moyennesGenerale)
