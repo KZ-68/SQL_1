@@ -89,21 +89,26 @@ GROUP BY a.noart, a.libelle
 
 -- j) Délai moyen pour chaque fournisseur proposant au moins 2 articles ?
 
-CREATE OR REPLACE VIEW delaiarticlesfournisseurs AS
-SELECT 
-    a.libelle,
-    f.nofour, 
-    f.nomfour, 
-    f.adrfour, 
-    f.villefour, 
-    AVG(ach.delai) AS moyenneDelai
-FROM 
-	acheter ach
-INNER JOIN fournisseurs f ON f.nofour = ach.nofour_id  
-INNER JOIN articles a ON a.noart = ach.noart_id
+CREATE OR REPLACE VIEW nombreArticleFournisseur AS 
+
+SELECT COUNT(a.noart_id) AS nb_art,
+f.nomfour,
+a.nofour_id
+FROM acheter a
+INNER JOIN fournisseurs f ON f.nofour = a.nofour_id
 GROUP BY 
-    a.libelle,
-    f.nofour, 
-    f.nomfour, 
-    f.adrfour, 
-    f.villefour
+a.nofour_id,
+f.nomfour
+
+SELECT 
+    nbf.nb_art,
+    nbf.nomfour,
+    a.nofour_id, 
+    AVG(a.delai) AS moyenneDelai
+FROM acheter a 
+INNER JOIN nombrearticlefournisseur nbf ON nbf.nofour_id = a.nofour_id
+WHERE nbf.nb_art >= 2
+GROUP BY 
+    nbf.nb_art,
+    nbf.nomfour,
+    a.nofour_id
