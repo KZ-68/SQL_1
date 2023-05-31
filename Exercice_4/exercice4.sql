@@ -27,9 +27,7 @@ ORDER BY e.numetu DESC
 
 SELECT 
 	m.libelle,
-	m.coef,
-	ROUND(
-		100 * m.coef / SUM(m.coef) OVER (PARTITION BY m.coef), 2) AS Pourcent
+	m.coef*100
 FROM matiere m
 
 
@@ -106,20 +104,13 @@ SELECT
 	SUM(sommeCoef)
 FROM coefmatiere
 
+SELECT SUM(coef) 
+FROM matiere
+
 -- k) Nombre total d'épreuves
 
-CREATE OR REPLACE VIEW vueEpreuve AS
-SELECT 
-	ep.numepreuve,
-	ep.dateepreuve,
-	ep.lieu AS listeEpreuve
-FROM 
-	epreuve ep
-
-SELECT 
-	COUNT(listeEpreuve)
-FROM 
-	vueEpreuve
+SELECT COUNT(*) 
+FROM epreuve
 
 -- l) Nombre de notes indéterminées (NULL)
 
@@ -133,15 +124,15 @@ WHERE n.note IS NULL
 
 -- m) Liste des épreuves (numéro, date et lieu) incluant le libellé de la matière
 
-SELECT
-	ep.numepreuve,
-	ep.dateepreuve,
-	ep.lieu,
-	m.libelle	
-FROM epreuve ep
-INNER JOIN matiere m ON ep.numepreuve = m.numepreuve_id
+SELECT 
+	numepreuve, 
+	dateepreuve, 
+	lieu, 
+	libelle 
+FROM epreuve e, matiere m 
+WHERE e.codemat_id = m.codemat
 
--- n)Liste des notes en précisant pour chacune le nom et le prénom de l'étudiant qui l'a obtenue
+-- n) Liste des notes en précisant pour chacune le nom et le prénom de l'étudiant qui l'a obtenue
 
 SELECT
 	n.note,
@@ -152,18 +143,16 @@ INNER JOIN etudiant e ON e.numetu = n.numetu_id
 
 -- o) Liste des notes en précisant pour chacune le nom et le prénom de l'étudiant qui l'a obtenue et le libellé de la matière concernée
 
-SELECT 
-	n.note,
-	e.nom,
-	e.prenom,
+SELECT
+	nom, 
+	prenom, 
+	note, 
 	libelle
 FROM 
-	vuematiere,
-	notation n
-INNER JOIN etudiant e ON  e.numetu = n.numetu_id
-INNER JOIN epreuve ep ON ep.numepreuve = n.numepreuve_id
-
-
+	etudiant e
+INNER JOIN notation n ON n.numetu_id = e.numetu
+INNER JOIN epreuve ep ON ep.numepreuve = n.numepreuve_id 
+INNER JOIN matiere m ON m.codemat = ep.codemat_id
 -- p) Nom et prénom des étudiants qui ont obtenu au moins une note égale à 20
 
 SELECT 
@@ -211,7 +200,7 @@ SELECT
 	AVG(n.note) AS moyennesNote
 FROM
 	matiere m
-INNER JOIN epreuve ep ON ep.numepreuve = m.numepreuve_id
+INNER JOIN epreuve ep ON ep.codemat_id = m.codemat
 INNER JOIN notation n ON ep.numepreuve = n.numepreuve_id
 GROUP BY 
 	ep.numepreuve,
@@ -227,3 +216,12 @@ GROUP BY
 	libelle, 
 	nb_epreuve,
 	moyennesNote
+
+-- t) Moyennes des notes obtenues aux épreuves(indiquer le numéro d'épreuve) où moins de 6 étudiants ont été notés
+
+SELECT
+numepreuve, AVG(note)FROMnotation
+WHERE note IS NOT NULL
+GROUP BY
+numepreuve
+HAVING COUNT(*)<6
